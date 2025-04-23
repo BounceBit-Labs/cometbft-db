@@ -29,6 +29,9 @@ func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
 
 func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, error) {
 	dbPath := filepath.Join(dir, name+".db")
+
+	o = configureOptions(o)
+
 	db, err := leveldb.OpenFile(dbPath, o)
 	if err != nil {
 		return nil, err
@@ -38,6 +41,18 @@ func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, 
 		db: db,
 	}
 	return database, nil
+}
+
+func configureOptions(o *opt.Options) *opt.Options {
+	if o == nil {
+		o = &opt.Options{}
+	}
+
+	o.OpenFilesCacheCapacity = 1000          // default is 500
+	o.BlockCacheCapacity = 1024 * opt.MiB    // default is 8 * opt.MiB
+	o.WriteBuffer = o.BlockCacheCapacity / 2 // default is 4 * opt.MiB
+
+	return o
 }
 
 // Get implements DB.
